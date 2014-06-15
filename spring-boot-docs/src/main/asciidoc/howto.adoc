@@ -1054,7 +1054,7 @@ for more details.
 [[howto-use-custom-entity-manager]]
 === Use a custom EntityManagerFactory
 To take full control of the configuration of the `EntityManagerFactory`, you need to add
-a `@Bean` named "entityManagerFactory". Spring Boot auto-configuration switches off its
+a `@Bean` named ``entityManagerFactory''. Spring Boot auto-configuration switches off its
 entity manager based on the presence of a bean of that type.
 
 
@@ -1109,32 +1109,33 @@ might be able to use a JTA transaction manager spanning both.
 Spring doesn't require the use of XML to configure the JPA provider, and Spring Boot
 assumes you want to take advantage of that feature. If you prefer to use `persistence.xml`
 then you need to define your own `@Bean` of type `LocalEntityManagerFactoryBean` (with
-id "entityManagerFactory", and set the persistence unit name there.
+id ``entityManagerFactory'', and set the persistence unit name there.
 
 See
 https://github.com/spring-projects/spring-boot/blob/master/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/orm/jpa/JpaBaseConfiguration.java[`JpaBaseConfiguration`]
 for the default settings.
 
+
+
 [[howto-use-spring-data-jpa--and-mongo-repositories]]
-=== Use Spring Data JPA and Mongo repositories 
+=== Use Spring Data JPA and Mongo repositories
 
-Spring Data JPA and Spring Data Mongo can both create `Repository`
-implementations for you automatically. If they are both present on the
-classpath, you might have to do some extra configuration to tell
-Spring Boot which one (or both) you want to create repositories for
-you. The most explicit way to do that is to use the standard Spring
-Data `@Enable*Repositories` and tell it the location of your
-`Repository` interfaces (where "*" is "Jpa" or "Mongo" or both).
+Spring Data JPA and Spring Data Mongo can both create `Repository` implementations for you
+automatically. If they are both present on the classpath, you might have to do some extra
+configuration to tell Spring Boot which one (or both) you want to create repositories for
+you. The most explicit way to do that is to use the standard Spring Data
+`@Enable*Repositories` and tell it the location of your `Repository` interfaces
+(where ``*'' is ``Jpa'' or ``Mongo'' or both).
 
-There are also flags `spring.data.*.repositories.enabled` that you can
-use to switch the autoconfigured repositories on and off in external
-configuration.  This is useful for instance in case you want to switch
-off the Mongo repositories and still use the autoconfigured
-`MongoTemplate`.
+There are also flags `spring.data.*.repositories.enabled` that you can use to switch the
+auto-configured repositories on and off in external configuration.  This is useful for
+instance in case you want to switch off the Mongo repositories and still use the
+auto-configured `MongoTemplate`.
 
-The same obstacle and the same features exist for other autoconfigured
-Spring Data repository types (Elasticsearch, Solr). Just change the
-names of the annotations and flags respectively.
+The same obstacle and the same features exist for other auto-configured Spring Data
+repository types (Elasticsearch, Solr). Just change the names of the annotations and flags
+respectively.
+
 
 
 [[howto-database-initialization]]
@@ -1173,7 +1174,6 @@ not something you want to be on the classpath in production. It is a Hibernate f
 (nothing to do with Spring).
 
 
-
 [[howto-intialize-a-database-using-spring-jdbc]]
 === Initialize a database using Spring JDBC
 Spring JDBC has a `DataSource` initializer feature. Spring Boot enables it by default and
@@ -1192,6 +1192,13 @@ To disable the failfast you can set `spring.datasource.continueOnError=true`. Th
 useful once an application has matured and been deployed a few times, since the scripts
 can act as ``poor man's migrations'' -- inserts that fail mean that the data is already
 there, so there would be no need to prevent the application from running, for instance.
+
+If you want to use the `schema.sql` initialization in a JPA app (with
+Hibernate) then `ddl-auto=create-drop` will lead to errors if
+Hibernate tries to create the same tables.  To avoid those errors set
+`ddl-auto` explicitly to "" (preferable) or "none". Whether or not you use
+`ddl-auto=create-drop` you can always use `data.sql` to initialize new
+data.
 
 
 
@@ -1219,11 +1226,10 @@ independence: usually only one or at most couple of platforms is needed.
 To automatically run Flyway database migrations on startup, add the
 `org.flywaydb:flyway-core` to your classpath.
 
-The migrations are scripts in the form `V<VERSION>__<NAME>.sql` (with
-`<VERSION>` an underscore-separated version, e.g. "1" or "2_1"). By
-default they live in a folder `classpath:db/migration` but you can
-modify that using `flyway.locations` (a list). See the Flyway class from
-flyway-core for details of available settings like schemas etc. In
+The migrations are scripts in the form `V<VERSION>__<NAME>.sql` (with `<VERSION>` an
+underscore-separated version, e.g. ``1'' or ``2_1''). By default they live in a folder
+`classpath:db/migration` but you can modify that using `flyway.locations` (a list). See
+the Flyway class from flyway-core for details of available settings like schemas etc. In
 addition Spring Boot provides a small set of properties in
 {sc-spring-boot-autoconfigure}/flyway/FlywayProperties.{sc-ext}[`FlywayProperties`]
 that can be used to disable the migrations, or switch off the location checking.
@@ -1459,6 +1465,44 @@ general mechanism to ensure that would be safe for a running application anyway,
 would only ever be a development time trick probably).
 
 
+[[howto-reload-springloaded-gradle-and-intellij]]
+==== Configuring Spring Loaded for use with Gradle and IntelliJ
+You need to jump though a few hoops if you want to use Spring Loaded in combination with
+Gradle and IntelliJ. By default, IntelliJ will compile classes into a different location
+than Gradle, causing Spring Loaded monitoring to fail.
+
+To configure IntelliJ correctly you can use the `idea` Gradle plugin:
+
+[source,groovy,indent=0,subs="verbatim,attributes"]
+----
+	buildscript {
+		repositories { mavenCentral() }
+		dependencies {
+			classpath "org.springframework.boot:spring-boot-gradle-plugin:{spring-boot-version}"
+			classpath 'org.springframework:springloaded:1.2.0.RELEASE'
+		}
+	}
+
+	apply plugin: 'idea'
+
+	idea {
+		module {
+			inheritOutputDirs = false
+			outputDir = file("$buildDir/classes/main/")
+		}
+	}
+
+	// ...
+
+----
+
+NOTE: Intellij must be configured to use the same Java version as the command line Gradle
+task and `springloaded` *must* be included as a `buildscript` dependency.
+
+You can also additionally enable ``Make Project Automatically'' inside  Intellij to
+automatically compile your code whenever a file is saved.
+
+
 
 [[howto-build]]
 == Build
@@ -1554,7 +1598,7 @@ archive as normal. To make it executable:
 . Use the appropriate launcher as a `Main-Class`, e.g. `JarLauncher` for a jar file, and
   specify the other properties it needs as manifest entries, principally a `Start-Class`.
 
-. Add the runtime dependencies in a nested "lib" directory (for a jar) and the
+. Add the runtime dependencies in a nested ``lib'' directory (for a jar) and the
   `provided` (embedded container) dependencies in a nested `lib-provided` directory.
   Remember *not* to compress the entries in the archive.
 
@@ -1613,7 +1657,7 @@ on the spring.io website and the sample below.
 The war file can also be executable if you use the Spring Boot build tools. In that case
 the embedded container classes (to launch Tomcat for instance) have to be added to the
 war in a `lib-provided` directory. The tools will take care of that as long as the
-dependencies are marked as "provided" in Maven or Gradle. Here's a Maven example
+dependencies are marked as ``provided'' in Maven or Gradle. Here's a Maven example
 {github-code}/spring-boot-samples/spring-boot-sample-traditional/pom.xml[in the Boot Samples].
 
 
