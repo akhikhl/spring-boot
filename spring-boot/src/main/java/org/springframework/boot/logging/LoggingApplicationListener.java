@@ -88,6 +88,7 @@ public class LoggingApplicationListener implements SmartApplicationListener {
 		LOG_LEVEL_LOGGERS.add(LogLevel.DEBUG, "org.springframework.boot");
 		LOG_LEVEL_LOGGERS.add(LogLevel.TRACE, "org.springframework");
 		LOG_LEVEL_LOGGERS.add(LogLevel.TRACE, "org.apache.tomcat");
+		LOG_LEVEL_LOGGERS.add(LogLevel.TRACE, "org.apache.catalina");
 		LOG_LEVEL_LOGGERS.add(LogLevel.TRACE, "org.eclipse.jetty");
 		LOG_LEVEL_LOGGERS.add(LogLevel.TRACE, "org.hibernate.tool.hbm2ddl");
 	}
@@ -184,10 +185,9 @@ public class LoggingApplicationListener implements SmartApplicationListener {
 				system.initialize(value);
 			}
 			catch (Exception ex) {
-				// Swallow exception and continue
+				this.logger.warn("Logging environment value '" + value
+						+ "' cannot be opened and will be ignored");
 			}
-			this.logger.warn("Logging environment value '" + value
-					+ "' cannot be opened and will be ignored");
 		}
 		else {
 
